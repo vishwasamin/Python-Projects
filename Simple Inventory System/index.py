@@ -2,7 +2,7 @@ from tkinter import *
 import tkinter.messagebox as tkMessageBox
 import sqlite3
 import tkinter.ttk as ttk
-#Thanks To Mark Arvin
+
 root = Tk()
 root.title("Inventory System")
 
