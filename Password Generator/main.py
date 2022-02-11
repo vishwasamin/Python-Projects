@@ -4,7 +4,18 @@ from tkinter import *
 from tkinter import messagebox
 import pyperclip
 import json
+import sqlite3
+import tkinter.ttk as ttk
 
+# DOMAIN_NAME = StringVar()
+# EMAIL = StringVar()
+# PASSWORD = StringVar()
+# ----------------------------Database Connection-------------------------
+global conn, cursor
+conn = sqlite3.connect("passgen.db")
+cursor = conn.cursor()
+cursor.execute("CREATE TABLE IF NOT EXISTS domain (domain_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, domain_name TEXT, email TEXT, password TEXT)")
+conn.commit()
 # ----------------------------Generate Password---------------------------
 def gen_pass():
     letters = list(string.ascii_lowercase) + list(string.ascii_uppercase)
@@ -43,21 +54,15 @@ def save():
     else:
         is_ok = messagebox.askokcancel(title="Confirm to save", message="Do you want to save the details?")
         if is_ok:
-            try:
-                with open("data.json", 'r') as save_file:
-                    data = json.load(save_file)
-            except FileNotFoundError:
-                with open("data.json", 'w') as save_file:
-                    json.dump(new_data, save_file, indent=4)
-            else:
-                data.update(new_data)
-                with open("data.json", 'w') as save_file:
-                    json.dump(data, save_file, indent=4)
-            finally:
-                domain.delete(0, 'end')
-                email.delete(0, 'end')
-                password.delete(0, 'end')
-                domain.focus()
+            Database()
+            cursor.execute("INSERT INTO domain (domain_name, email, password) VALUES(?, ?, ?)", (str(DOMAIN_NAME.get()), str(EMAIL.get()), str(PASSWORD.get())))
+            conn.commit()
+            domain.delete(0, 'end')
+            email.delete(0, 'end')
+            password.delete(0, 'end')
+            domain.focus()
+            cursor.close()
+            conn.close()
 
 # ---------------------------------------Search Domain in File-----------------------------
 def search():
@@ -85,6 +90,9 @@ image = PhotoImage(file="logo.png")
 canvas.create_image(100, 100, image=image)
 canvas.grid(column=1, row=0)
 
+DOMAIN_NAME = StringVar()
+EMAIL = StringVar()
+PASSWORD = StringVar()
 # Labels
 domain = Label(text="Domain", bg=COLOR, pady=5)
 domain.grid(row=1)
@@ -94,14 +102,14 @@ password = Label(text="Password ", bg=COLOR, pady=10)
 password.grid(row=3)
 
 # Entries and Buttons
-domain = Entry(width=33)
+domain = Entry(width=33,textvariable=DOMAIN_NAME)
 domain.focus()
 domain.grid(column=1, row=1)
 search_btn = Button(text="Search", bg=COLOR, padx=30, command=search)
 search_btn.grid(column=2, row=1)
-email = Entry(width=52)
+email = Entry(width=52,textvariable=EMAIL)
 email.grid(column=1, row=2, columnspan=2)
-password = Entry(width=33)
+password = Entry(width=33,textvariable=PASSWORD)
 password.grid(column=1, row=3)
 pass_gen = Button(text="Generate Password", bg=COLOR, command=gen_pass)
 pass_gen.grid(column=2, row=3)
